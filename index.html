@@ -1,0 +1,1459 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestion des Cotisations - Groupe OAM</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+
+        .login-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .login-box {
+            background: white;
+            padding: 40px;
+            border-radius: 15px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            text-align: center;
+            max-width: 400px;
+            width: 100%;
+        }
+
+        .login-box h2 {
+            color: #667eea;
+            margin-bottom: 30px;
+            font-size: 2rem;
+        }
+
+        .login-box input {
+            width: 100%;
+            padding: 15px;
+            margin: 10px 0;
+            border: 2px solid #e1e8ed;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+
+        .login-box input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .login-btn {
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+
+        .login-btn:hover {
+            transform: translateY(-2px);
+        }
+
+        .main-container {
+            display: none;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            margin-bottom: 30px;
+            text-align: center;
+            position: relative;
+        }
+
+        .header h1 {
+            color: #667eea;
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+        }
+
+        .real-time-indicator {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            background: #28a745;
+            color: white;
+            padding: 5px 10px;
+            border-radius: 15px;
+            font-size: 12px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .real-time-indicator::before {
+            content: "●";
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.5; }
+            100% { opacity: 1; }
+        }
+
+        .admin-toggle {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: #28a745;
+            color: white;
+            padding: 10px 15px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+        .progress-section {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            margin-bottom: 30px;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 20px;
+            background: #f0f0f0;
+            border-radius: 10px;
+            overflow: hidden;
+            margin: 20px 0;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #667eea, #764ba2);
+            transition: width 0.5s ease;
+            border-radius: 10px;
+        }
+
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin: 20px 0;
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+        }
+
+        .quote-section {
+            background: linear-gradient(135deg, #ff9a9e, #fecfef);
+            padding: 20px;
+            border-radius: 15px;
+            margin-bottom: 30px;
+            text-align: center;
+            color: #333;
+        }
+
+        .quote-section h3 {
+            margin-bottom: 10px;
+            color: #667eea;
+        }
+
+        .content-section {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 30px;
+        }
+
+        .members-list {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        }
+
+        .admin-panel {
+            display: none;
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            margin-bottom: 30px;
+        }
+
+        .admin-panel.active {
+            display: block;
+        }
+
+        .admin-login {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+
+        .admin-content {
+            display: none;
+        }
+
+        .admin-content.active {
+            display: block;
+        }
+
+        .member-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px;
+            border-bottom: 1px solid #eee;
+            transition: all 0.3s;
+            position: relative;
+            animation: fadeIn 0.5s ease-in;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .member-item:hover {
+            background-color: #f8f9fa;
+            transform: translateX(5px);
+        }
+
+        .member-item.updated {
+            background-color: #e8f5e8;
+            border-left: 4px solid #28a745;
+        }
+
+        .member-info {
+            flex: 1;
+        }
+
+        .member-name {
+            font-weight: bold;
+            color: #333;
+        }
+
+        .member-amount {
+            color: #667eea;
+            font-size: 1.1rem;
+            font-weight: bold;
+        }
+
+        .member-date {
+            font-size: 0.8rem;
+            color: #666;
+        }
+
+        .progress-percentage {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            padding: 5px 10px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+        }
+
+        .member-actions {
+            display: none;
+            position: absolute;
+            right: 100px;
+            top: 50%;
+            transform: translateY(-50%);
+        }
+
+        .admin-content.active .member-actions {
+            display: flex;
+            gap: 5px;
+        }
+
+        .action-btn {
+            padding: 5px 10px;
+            border: none;
+            border-radius: 3px;
+            cursor: pointer;
+            font-size: 12px;
+        }
+
+        .edit-btn {
+            background: #ffc107;
+            color: #000;
+        }
+
+        .delete-btn {
+            background: #dc3545;
+            color: white;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: #333;
+        }
+
+        .form-group input, .form-group textarea {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #e1e8ed;
+            border-radius: 5px;
+            font-size: 14px;
+        }
+
+        .form-group input:focus, .form-group textarea:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .btn {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: transform 0.2s;
+            margin-right: 10px;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+        }
+
+        .btn-secondary {
+            background: #6c757d;
+        }
+
+        .news-section {
+            background: white;
+            padding: 20px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            margin-top: 20px;
+        }
+
+        .news-item {
+            padding: 15px;
+            border-left: 4px solid #667eea;
+            margin-bottom: 15px;
+            background: #f8f9fa;
+            border-radius: 0 8px 8px 0;
+            position: relative;
+            animation: slideIn 0.5s ease-out;
+        }
+
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateX(-20px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+
+        .news-item.new {
+            background: #e8f5e8;
+            border-left-color: #28a745;
+        }
+
+        .news-signature {
+            font-style: italic;
+            color: #667eea;
+            margin-top: 10px;
+            font-size: 0.9rem;
+        }
+
+        .news-actions {
+            display: none;
+            position: absolute;
+            top: 10px;
+            right: 10px;
+        }
+
+        .admin-content.active .news-actions {
+            display: flex;
+            gap: 5px;
+        }
+
+        .logout-btn {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: #dc3545;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        .error-message {
+            color: red;
+            margin-top: 10px;
+            display: none;
+        }
+
+        .success-message {
+            color: green;
+            margin-top: 10px;
+            display: none;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 20px;
+            color: #667eea;
+        }
+
+        .loading::after {
+            content: "⏳";
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .connection-status {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            padding: 10px 15px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: bold;
+            z-index: 1000;
+        }
+
+        .connection-status.online {
+            background: #28a745;
+            color: white;
+        }
+
+        .connection-status.offline {
+            background: #dc3545;
+            color: white;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+        }
+
+        .modal-content {
+            background-color: white;
+            margin: 15% auto;
+            padding: 20px;
+            border-radius: 10px;
+            width: 80%;
+            max-width: 500px;
+        }
+
+        .close {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .close:hover {
+            color: black;
+        }
+
+        @media (max-width: 768px) {
+            .content-section {
+                grid-template-columns: 1fr;
+            }
+            
+            .stats {
+                grid-template-columns: 1fr;
+            }
+
+            .admin-toggle {
+                position: static;
+                margin-top: 10px;
+            }
+
+            .real-time-indicator {
+                position: static;
+                margin-bottom: 10px;
+                width: fit-content;
+                margin-left: auto;
+                margin-right: auto;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Page de connexion générale -->
+    <div id="main-login" class="login-container">
+        <div class="login-box">
+            <h2>🔐 Accès au Site</h2>
+            <input type="password" id="site-password" placeholder="Mot de passe d'accès" />
+            <button class="login-btn" onclick="loginToSite()">Accéder au Site</button>
+            <div id="site-error" class="error-message">
+                Mot de passe incorrect
+            </div>
+        </div>
+    </div>
+
+    <!-- Contenu principal -->
+    <div id="main-content" class="main-container">
+        <button class="logout-btn" onclick="logoutFromSite()">Déconnexion</button>
+        
+        <div class="header">
+            <div class="real-time-indicator" id="connection-indicator">
+                En ligne - Temps réel
+            </div>
+            <h1>💰 Gestion des Cotisations - Groupe OAM</h1>
+            <p>Objectif: 250,000 F CFA - Échéance: Février 2025</p>
+            <button class="admin-toggle" onclick="toggleAdminPanel()">👤 Espace Admin</button>
+        </div>
+
+        <!-- Panel Admin -->
+        <div id="admin-panel" class="admin-panel">
+            <h2>⚙️ Administration Firebase</h2>
+            
+            <!-- Connexion Admin -->
+            <div id="admin-login" class="admin-login">
+                <div class="form-group">
+                    <label>Nom d'utilisateur:</label>
+                    <input type="text" id="admin-username" placeholder="Nom d'utilisateur" />
+                </div>
+                <div class="form-group">
+                    <label>Mot de passe:</label>
+                    <input type="password" id="admin-password" placeholder="Mot de passe admin" />
+                </div>
+                <button class="btn" onclick="loginAdmin()">Se connecter</button>
+                <button class="btn btn-secondary" onclick="closeAdminPanel()">Annuler</button>
+                <div id="admin-error" class="error-message">
+                    Identifiants incorrects
+                </div>
+            </div>
+
+            <!-- Contenu Admin -->
+            <div id="admin-content" class="admin-content">
+                <p>👋 Bienvenue, <span id="admin-name"></span>!</p>
+                <button class="btn btn-secondary" onclick="logoutAdmin()" style="float: right;">Déconnexion Admin</button>
+                
+                <hr style="margin: 20px 0;">
+                
+                <h3>💰 Gestion des Membres</h3>
+                <div class="form-group">
+                    <label>Nom du membre:</label>
+                    <input type="text" id="member-name" placeholder="Nom du membre" />
+                </div>
+                
+                <div class="form-group">
+                    <label>Montant (F CFA):</label>
+                    <input type="number" id="member-amount" placeholder="Montant" min="0" max="62000" />
+                </div>
+                
+                <button class="btn" onclick="addPayment()">💰 Ajouter Paiement</button>
+                <button class="btn" onclick="clearForm()">🧹 Effacer</button>
+                
+                <hr style="margin: 30px 0;">
+                
+                <h3>📢 Gestion des Actualités</h3>
+                <div class="form-group">
+                    <label>Actualité:</label>
+                    <textarea id="news-content" rows="4" placeholder="Nouvelle actualité..."></textarea>
+                </div>
+                
+                <button class="btn" onclick="addNews()">📢 Publier Actualité</button>
+                
+                <hr style="margin: 30px 0;">
+                
+                <h3>🔑 Sécurité</h3>
+                <div class="form-group">
+                    <label>Nouveau mot de passe site:</label>
+                    <input type="password" id="new-site-password" placeholder="Nouveau mot de passe site" />
+                </div>
+                
+                <div class="form-group">
+                    <label>Nouveau mot de passe admin:</label>
+                    <input type="password" id="new-admin-password" placeholder="Nouveau mot de passe admin" />
+                </div>
+                
+                <button class="btn" onclick="changeSitePassword()">🔑 Changer Mot de Passe Site</button>
+                <button class="btn" onclick="changeAdminPassword()">🔑 Changer Mot de Passe Admin</button>
+                
+                <hr style="margin: 30px 0;">
+                
+                <h3>🔄 Synchronisation</h3>
+                <button class="btn" onclick="exportData()">📥 Exporter Données</button>
+                <button class="btn" onclick="checkConnectionStatus()">🔍 Vérifier Connexion</button>
+                
+                <div id="admin-success" class="success-message"></div>
+            </div>
+        </div>
+
+        <!-- Citation du jour -->
+        <div class="quote-section">
+            <h3>💫 Citation du jour</h3>
+            <p id="daily-quote"></p>
+        </div>
+
+        <!-- Section progression -->
+        <div class="progress-section">
+            <h2>📊 Progression du Projet</h2>
+            <div class="progress-bar">
+                <div class="progress-fill" id="progress-fill"></div>
+            </div>
+            <div class="stats">
+                <div class="stat-card">
+                    <h3 id="total-amount">0 F</h3>
+                    <p>Montant Total</p>
+                </div>
+                <div class="stat-card">
+                    <h3 id="total-percentage">0%</h3>
+                    <p>Progression</p>
+                </div>
+                <div class="stat-card">
+                    <h3 id="remaining-amount">250,000 F</h3>
+                    <p>Reste à Collecter</p>
+                </div>
+                <div class="stat-card">
+                    <h3 id="contributors-count">0</h3>
+                    <p>Contributeurs</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="content-section">
+            <!-- Liste des membres -->
+            <div class="members-list">
+                <h2>👥 Liste des Contributions</h2>
+                <div id="members-container" class="loading">
+                    Chargement des données...
+                </div>
+            </div>
+        </div>
+
+        <!-- Section actualités -->
+        <div class="news-section">
+            <h2>📰 Actualités du Groupe</h2>
+            <div id="news-container" class="loading">
+                Chargement des actualités...
+            </div>
+        </div>
+    </div>
+
+    <!-- Indicateur de connexion -->
+    <div id="connection-status" class="connection-status online">
+        🟢 Connecté
+    </div>
+
+    <!-- Modal d'édition -->
+    <div id="edit-modal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeEditModal()">&times;</span>
+            <h3>✏️ Modifier Membre</h3>
+            <div class="form-group">
+                <label>Nom:</label>
+                <input type="text" id="edit-name" />
+            </div>
+            <div class="form-group">
+                <label>Montant:</label>
+                <input type="number" id="edit-amount" min="0" max="62000" />
+            </div>
+            <button class="btn" onclick="saveEdit()">💾 Sauvegarder</button>
+            <button class="btn btn-secondary" onclick="closeEditModal()">Annuler</button>
+        </div>
+    </div>
+
+    <!-- Firebase SDK -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/firebase/9.23.0/firebase-app-compat.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/firebase/9.23.0/firebase-firestore-compat.min.js"></script>
+
+    <script>
+        // ==========================================
+        // CONFIGURATION FIREBASE
+        // ==========================================
+        
+        // Configuration Firebase - REAL CONFIG
+        const firebaseConfig = {
+            apiKey: "AIzaSyAVxBD99mo1IIp9-vp-6RIf2jycCwAy5hg",
+            authDomain: "cotisations-oam-groupe.firebaseapp.com",
+            projectId: "cotisations-oam-groupe",
+            storageBucket: "cotisations-oam-groupe.firebasestorage.app",
+            messagingSenderId: "735863860544",
+            appId: "1:735863860544:web:fe90f89bdb0db4eed09ea5",
+            measurementId: "G-45BB9V2D1W"
+        };
+
+        // Variables Firebase
+        let db;
+        let isFirebaseInitialized = false;
+        
+        // Initialisation Firebase avec gestion d'erreur
+        function initializeFirebase() {
+            try {
+                if (!firebase.apps.length) {
+                    firebase.initializeApp(firebaseConfig);
+                }
+                db = firebase.firestore();
+                isFirebaseInitialized = true;
+                updateConnectionStatus(true);
+                console.log("Firebase initialisé avec succès");
+                
+                // Commencer l'écoute temps réel
+                startRealtimeListeners();
+                
+            } catch (error) {
+                console.error("Erreur d'initialisation Firebase:", error);
+                isFirebaseInitialized = false;
+                updateConnectionStatus(false);
+                
+                // Mode fallback sans Firebase
+                initializeFallbackMode();
+            }
+        }
+
+        // Mode de secours sans Firebase
+        function initializeFallbackMode() {
+            console.log("Mode hors ligne activé");
+            // Utilise les données locales comme avant
+            members = [];
+            news = [{
+                content: "Site en mode hors ligne. Les modifications ne seront pas synchronisées.",
+                date: new Date(),
+                signature: "Système"
+            }];
+            updateDisplay();
+        }
+
+        // ==========================================
+        // GESTION TEMPS RÉEL FIREBASE
+        // ==========================================
+        
+        function startRealtimeListeners() {
+            if (!isFirebaseInitialized) return;
+            
+            // Écouter les changements sur la collection members
+            db.collection('members').onSnapshot((snapshot) => {
+                members = [];
+                snapshot.forEach((doc) => {
+                    const data = doc.data();
+                    members.push({
+                        id: doc.id,
+                        name: data.name,
+                        amount: data.amount,
+                        lastPayment: data.lastPayment.toDate()
+                    });
+                });
+                updateDisplay();
+                highlightUpdatedMembers();
+            }, (error) => {
+                console.error("Erreur d'écoute members:", error);
+                updateConnectionStatus(false);
+            });
+            
+            // Écouter les changements sur la collection news
+            db.collection('news').orderBy('date', 'desc').onSnapshot((snapshot) => {
+                news = [];
+                snapshot.forEach((doc) => {
+                    const data = doc.data();
+                    news.push({
+                        id: doc.id,
+                        content: data.content,
+                        date: data.date.toDate(),
+                        signature: data.signature
+                    });
+                });
+                updateNewsDisplay();
+                highlightNewNews();
+            }, (error) => {
+                console.error("Erreur d'écoute news:", error);
+                updateConnectionStatus(false);
+            });
+        }
+
+        // Ajouter un membre à Firebase
+        async function addMemberToFirebase(memberData) {
+            if (!isFirebaseInitialized) return;
+            
+            try {
+                // Vérifier si le membre existe déjà
+                const existingQuery = await db.collection('members')
+                    .where('name', '==', memberData.name)
+                    .get();
+                
+                if (!existingQuery.empty) {
+                    // Mettre à jour le membre existant
+                    const doc = existingQuery.docs[0];
+                    const currentData = doc.data();
+                    await doc.ref.update({
+                        amount: currentData.amount + memberData.amount,
+                        lastPayment: firebase.firestore.Timestamp.now()
+                    });
+                } else {
+                    // Créer un nouveau membre
+                    await db.collection('members').add({
+                        name: memberData.name,
+                        amount: memberData.amount,
+                        lastPayment: firebase.firestore.Timestamp.now()
+                    });
+                }
+                
+                showSuccess('Paiement synchronisé avec succès !');
+                
+            } catch (error) {
+                console.error("Erreur d'ajout à Firebase:", error);
+                showError('Erreur de synchronisation');
+            }
+        }
+
+        // Ajouter une actualité à Firebase
+        async function addNewsToFirebase(newsData) {
+            if (!isFirebaseInitialized) return;
+            
+            try {
+                await db.collection('news').add({
+                    content: newsData.content,
+                    date: firebase.firestore.Timestamp.now(),
+                    signature: newsData.signature
+                });
+                
+                showSuccess('Actualité publiée et synchronisée !');
+                
+            } catch (error) {
+                console.error("Erreur d'ajout actualité:", error);
+                showError('Erreur de synchronisation');
+            }
+        }
+
+        // Modifier un membre dans Firebase
+        async function updateMemberInFirebase(memberId, memberData) {
+            if (!isFirebaseInitialized) return;
+            
+            try {
+                await db.collection('members').doc(memberId).update({
+                    name: memberData.name,
+                    amount: memberData.amount,
+                    lastPayment: firebase.firestore.Timestamp.now()
+                });
+                
+                showSuccess('Membre modifié et synchronisé !');
+                
+            } catch (error) {
+                console.error("Erreur de modification:", error);
+                showError('Erreur de synchronisation');
+            }
+        }
+
+        // Supprimer un membre de Firebase
+        async function deleteMemberFromFirebase(memberId) {
+            if (!isFirebaseInitialized) return;
+            
+            try {
+                await db.collection('members').doc(memberId).delete();
+                showSuccess('Membre supprimé et synchronisé !');
+                
+            } catch (error) {
+                console.error("Erreur de suppression:", error);
+                showError('Erreur de synchronisation');
+            }
+        }
+
+        // Supprimer une actualité de Firebase
+        async function deleteNewsFromFirebase(newsId) {
+            if (!isFirebaseInitialized) return;
+            
+            try {
+                await db.collection('news').doc(newsId).delete();
+                showSuccess('Actualité supprimée et synchronisée !');
+                
+            } catch (error) {
+                console.error("Erreur de suppression:", error);
+                showError('Erreur de synchronisation');
+            }
+        }
+
+        // ==========================================
+        // AUTHENTIFICATION ET SÉCURITÉ
+        // ==========================================
+        
+        // Configuration sécurisée (encodage des mots de passe)
+        const config = {
+            sitePass: 'T0FNMTk=', // OAM19 encodé
+            adminUser: 'b3VyYWdh', // ouraga encodé
+            adminPass: 'RkJJMTk=', // FBI19 encodé
+            targetAmount: 250000,
+            individualTarget: 62000
+        };
+        
+        // Variables globales
+        let isAdminLoggedIn = false;
+        let currentEditIndex = -1;
+        let members = [];
+        let news = [];
+        
+        // Citations et proverbes
+        const quotes = [
+            "L'union fait la force, et notre groupe en est la preuve vivante.",
+            "Chaque contribution compte, chaque geste rapproche du succès.",
+            "La persévérance est la clé de tous les grands accomplissements.",
+            "Ensemble, nous pouvons déplacer des montagnes.",
+            "Le succès est la somme de petits efforts répétés jour après jour.",
+            "Une équipe unie peut tout accomplir.",
+            "La solidarité est notre force, l'entraide notre devise.",
+            "Qui veut aller loin ménage sa monture, qui veut réussir s'entoure bien.",
+            "L'avenir appartient à ceux qui croient en la beauté de leurs rêves.",
+            "Le courage n'est pas l'absence de peur, mais la maîtrise de la peur.",
+            "Seul on va plus vite, ensemble on va plus loin.",
+            "La patience est amère, mais son fruit est doux.",
+            "Rome ne s'est pas faite en un jour.",
+            "Petit à petit, l'oiseau fait son nid.",
+            "Qui sème récolte."
+        ];
+
+        // Fonction pour décoder les mots de passe
+        function decode(str) {
+            return atob(str);
+        }
+
+        // Fonction pour obtenir la citation du jour
+        function getDailyQuote() {
+            const today = new Date();
+            const dayOfYear = Math.floor((today - new Date(today.getFullYear(), 0, 0)) / 1000 / 60 / 60 / 24);
+            return quotes[dayOfYear % quotes.length];
+        }
+
+        // ==========================================
+        // FONCTIONS DE CONNEXION
+        // ==========================================
+        
+        // Connexion au site
+        function loginToSite() {
+            const inputPassword = document.getElementById('site-password').value;
+            
+            if (btoa(inputPassword) === config.sitePass) {
+                document.getElementById('main-login').style.display = 'none';
+                document.getElementById('main-content').style.display = 'block';
+                initializePage();
+            } else {
+                showError('site-error');
+            }
+        }
+
+        // Déconnexion du site
+        function logoutFromSite() {
+            document.getElementById('main-login').style.display = 'flex';
+            document.getElementById('main-content').style.display = 'none';
+            document.getElementById('site-password').value = '';
+            closeAdminPanel();
+            logoutAdmin();
+        }
+
+        // Gestion du panel admin
+        function toggleAdminPanel() {
+            const panel = document.getElementById('admin-panel');
+            panel.classList.toggle('active');
+            if (!panel.classList.contains('active')) {
+                logoutAdmin();
+            }
+        }
+
+        function closeAdminPanel() {
+            document.getElementById('admin-panel').classList.remove('active');
+            logoutAdmin();
+        }
+
+        // Connexion admin
+        function loginAdmin() {
+            const username = document.getElementById('admin-username').value;
+            const password = document.getElementById('admin-password').value;
+            
+            if (btoa(username) === config.adminUser && btoa(password) === config.adminPass) {
+                isAdminLoggedIn = true;
+                document.getElementById('admin-login').style.display = 'none';
+                document.getElementById('admin-content').classList.add('active');
+                document.getElementById('admin-name').textContent = username;
+                updateDisplay();
+            } else {
+                showErrorElement('admin-error');
+            }
+        }
+
+        // Déconnexion admin
+        function logoutAdmin() {
+            isAdminLoggedIn = false;
+            document.getElementById('admin-login').style.display = 'block';
+            document.getElementById('admin-content').classList.remove('active');
+            document.getElementById('admin-username').value = '';
+            document.getElementById('admin-password').value = '';
+            updateDisplay();
+        }
+
+        // ==========================================
+        // GESTION DES MEMBRES
+        // ==========================================
+        
+        // Ajouter un paiement
+        async function addPayment() {
+            if (!isAdminLoggedIn) return;
+            
+            const name = document.getElementById('member-name').value.trim();
+            const amount = parseInt(document.getElementById('member-amount').value);
+
+            if (!name || !amount || amount <= 0) {
+                alert('Veuillez remplir tous les champs correctement.');
+                return;
+            }
+
+            if (amount > config.individualTarget) {
+                alert(`Le montant ne peut pas dépasser ${config.individualTarget} F CFA.`);
+                return;
+            }
+
+            // Vérifier la limite pour les membres existants
+            const existingMember = members.find(m => m.name.toLowerCase() === name.toLowerCase());
+            if (existingMember && (existingMember.amount + amount) > config.individualTarget) {
+                alert(`Ce paiement dépasserait la limite de ${config.individualTarget} F CFA pour ce membre.`);
+                return;
+            }
+
+            // Ajouter à Firebase
+            await addMemberToFirebase({
+                name: name,
+                amount: amount
+            });
+
+            clearForm();
+        }
+
+        // Effacer le formulaire
+        function clearForm() {
+            document.getElementById('member-name').value = '';
+            document.getElementById('member-amount').value = '';
+        }
+
+        // Éditer un membre
+        function editMember(index) {
+            if (!isAdminLoggedIn) return;
+            
+            currentEditIndex = index;
+            const member = members[index];
+            
+            document.getElementById('edit-name').value = member.name;
+            document.getElementById('edit-amount').value = member.amount;
+            document.getElementById('edit-modal').style.display = 'block';
+        }
+
+        // Sauvegarder les modifications
+        async function saveEdit() {
+            if (!isAdminLoggedIn || currentEditIndex === -1) return;
+            
+            const name = document.getElementById('edit-name').value.trim();
+            const amount = parseInt(document.getElementById('edit-amount').value);
+
+            if (!name || !amount || amount <= 0) {
+                alert('Veuillez remplir tous les champs correctement.');
+                return;
+            }
+
+            if (amount > config.individualTarget) {
+                alert(`Le montant ne peut pas dépasser ${config.individualTarget} F CFA.`);
+                return;
+            }
+
+            const member = members[currentEditIndex];
+            
+            await updateMemberInFirebase(member.id, {
+                name: name,
+                amount: amount
+            });
+
+            closeEditModal();
+        }
+
+        // Fermer la modal d'édition
+        function closeEditModal() {
+            document.getElementById('edit-modal').style.display = 'none';
+            currentEditIndex = -1;
+        }
+
+        // Supprimer un membre
+        async function deleteMember(index) {
+            if (!isAdminLoggedIn) return;
+            
+            if (confirm('Êtes-vous sûr de vouloir supprimer ce membre ?')) {
+                const member = members[index];
+                await deleteMemberFromFirebase(member.id);
+            }
+        }
+
+        // ==========================================
+        // GESTION DES ACTUALITÉS
+        // ==========================================
+        
+        // Ajouter une actualité
+        async function addNews() {
+            if (!isAdminLoggedIn) return;
+            
+            const content = document.getElementById('news-content').value.trim();
+            
+            if (!content) {
+                alert('Veuillez saisir une actualité.');
+                return;
+            }
+
+            await addNewsToFirebase({
+                content: content,
+                signature: "N'dia Grâce - Trésorière"
+            });
+
+            document.getElementById('news-content').value = '';
+        }
+
+        // Supprimer une actualité
+        async function deleteNews(index) {
+            if (!isAdminLoggedIn) return;
+            
+            if (confirm('Êtes-vous sûr de vouloir supprimer cette actualité ?')) {
+                const newsItem = news[index];
+                await deleteNewsFromFirebase(newsItem.id);
+            }
+        }
+
+        // ==========================================
+        // GESTION DES MOTS DE PASSE
+        // ==========================================
+        
+        // Changer le mot de passe du site
+        function changeSitePassword() {
+            if (!isAdminLoggedIn) return;
+            
+            const newPassword = document.getElementById('new-site-password').value.trim();
+            
+            if (!newPassword || newPassword.length < 4) {
+                alert('Le mot de passe doit contenir au moins 4 caractères.');
+                return;
+            }
+
+            config.sitePass = btoa(newPassword);
+            document.getElementById('new-site-password').value = '';
+            showSuccess('Mot de passe du site changé avec succès !');
+        }
+
+        // Changer le mot de passe admin
+        function changeAdminPassword() {
+            if (!isAdminLoggedIn) return;
+            
+            const newPassword = document.getElementById('new-admin-password').value.trim();
+            
+            if (!newPassword || newPassword.length < 4) {
+                alert('Le mot de passe doit contenir au moins 4 caractères.');
+                return;
+            }
+
+            config.adminPass = btoa(newPassword);
+            document.getElementById('new-admin-password').value = '';
+            showSuccess('Mot de passe admin changé avec succès !');
+        }
+
+        // ==========================================
+        // AFFICHAGE ET INTERFACE
+        // ==========================================
+        
+        // Mettre à jour l'affichage
+        function updateDisplay() {
+            // Calculer les totaux
+            const totalAmount = members.reduce((sum, member) => sum + member.amount, 0);
+            const totalPercentage = Math.round((totalAmount / config.targetAmount) * 100);
+            const remainingAmount = config.targetAmount - totalAmount;
+            const contributorsCount = members.length;
+
+            // Mettre à jour les statistiques
+            document.getElementById('total-amount').textContent = totalAmount.toLocaleString() + ' F';
+            document.getElementById('total-percentage').textContent = totalPercentage + '%';
+            document.getElementById('remaining-amount').textContent = remainingAmount.toLocaleString() + ' F';
+            document.getElementById('contributors-count').textContent = contributorsCount;
+
+            // Mettre à jour la barre de progression
+            document.getElementById('progress-fill').style.width = Math.min(totalPercentage, 100) + '%';
+
+            // Mettre à jour la liste des membres
+            updateMembersDisplay();
+        }
+
+        // Mettre à jour l'affichage des membres
+        function updateMembersDisplay() {
+            const membersContainer = document.getElementById('members-container');
+            membersContainer.innerHTML = '';
+
+            // Trier les membres par montant décroissant
+            const sortedMembers = [...members].sort((a, b) => b.amount - a.amount);
+
+            sortedMembers.forEach((member, index) => {
+                const originalIndex = members.findIndex(m => m.id === member.id);
+                const memberPercentage = Math.round((member.amount / config.individualTarget) * 100);
+                const memberDiv = document.createElement('div');
+                memberDiv.className = 'member-item';
+                memberDiv.setAttribute('data-id', member.id);
+                
+                memberDiv.innerHTML = `
+                    <div class="member-info">
+                        <div class="member-name">${member.name}</div>
+                        <div class="member-date">Dernier paiement: ${member.lastPayment.toLocaleDateString('fr-FR')} à ${member.lastPayment.toLocaleTimeString('fr-FR')}</div>
+                    </div>
+                    <div class="member-actions">
+                        <button class="action-btn edit-btn" onclick="editMember(${originalIndex})">✏️</button>
+                        <button class="action-btn delete-btn" onclick="deleteMember(${originalIndex})">🗑️</button>
+                    </div>
+                    <div>
+                        <div class="member-amount">${member.amount.toLocaleString()} F</div>
+                        <div class="progress-percentage">${memberPercentage}%</div>
+                    </div>
+                `;
+                
+                membersContainer.appendChild(memberDiv);
+            });
+
+            // Afficher un message si aucun membre
+            if (members.length === 0) {
+                membersContainer.innerHTML = '<p style="text-align: center; color: #666; padding: 20px;">Aucune contribution enregistrée pour le moment.</p>';
+            }
+        }
+
+        // Mettre à jour l'affichage des actualités
+        function updateNewsDisplay() {
+            const newsContainer = document.getElementById('news-container');
+            newsContainer.innerHTML = '';
+
+            news.forEach((item, index) => {
+                const newsDiv = document.createElement('div');
+                newsDiv.className = 'news-item';
+                newsDiv.setAttribute('data-id', item.id);
+                
+                newsDiv.innerHTML = `
+                    <div>${item.content}</div>
+                    <div class="news-actions">
+                        <button class="action-btn delete-btn" onclick="deleteNews(${index})">🗑️</button>
+                    </div>
+                    <div class="news-signature">
+                        📝 ${item.signature} - ${item.date.toLocaleDateString('fr-FR')} à ${item.date.toLocaleTimeString('fr-FR')}
+                    </div>
+                `;
+                
+                newsContainer.appendChild(newsDiv);
+            });
+
+            // Afficher un message si aucune actualité
+            if (news.length === 0) {
+                newsContainer.innerHTML = '<p style="text-align: center; color: #666; padding: 20px;">Aucune actualité publiée pour le moment.</p>';
+            }
+        }
+
+        // Mettre en évidence les éléments mis à jour
+        function highlightUpdatedMembers() {
+            const memberItems = document.querySelectorAll('.member-item');
+            memberItems.forEach(item => {
+                item.classList.add('updated');
+                setTimeout(() => {
+                    item.classList.remove('updated');
+                }, 2000);
+            });
+        }
+
+        function highlightNewNews() {
+            const newsItems = document.querySelectorAll('.news-item');
+            if (newsItems.length > 0) {
+                newsItems[0].classList.add('new');
+                setTimeout(() => {
+                    newsItems[0].classList.remove('new');
+                }, 3000);
+            }
+        }
+
+        // ==========================================
+        // STATUT DE CONNEXION
+        // ==========================================
+        
+        function updateConnectionStatus(isOnline) {
+            const indicator = document.getElementById('connection-indicator');
+            const status = document.getElementById('connection-status');
+            
+            if (isOnline) {
+                indicator.textContent = 'En ligne - Temps réel';
+                indicator.style.background = '#28a745';
+                status.textContent = '🟢 Connecté';
+                status.className = 'connection-status online';
+            } else {
+                indicator.textContent = 'Hors ligne';
+                indicator.style.background = '#dc3545';
+                status.textContent = '🔴 Hors ligne';
+                status.className = 'connection-status offline';
+            }
+        }
+
+        function checkConnectionStatus() {
+            if (isFirebaseInitialized) {
+                showSuccess('Connexion Firebase active !');
+            } else {
+                showSuccess('Mode hors ligne - Les données ne sont pas synchronisées');
+            }
+        }
+
+        // ==========================================
+        // FONCTIONS UTILITAIRES
+        // ==========================================
+        
+        function showErrorElement(elementId) {
+            const errorElement = document.getElementById(elementId);
+            errorElement.style.display = 'block';
+            setTimeout(() => {
+                errorElement.style.display = 'none';
+            }, 3000);
+        }
+
+        function showError(message) {
+            console.error(message);
+            // Peut être étendu pour afficher des erreurs à l'utilisateur
+        }
+
+        function showSuccess(message) {
+            const successElement = document.getElementById('admin-success');
+            if (successElement) {
+                successElement.textContent = message;
+                successElement.style.display = 'block';
+                setTimeout(() => {
+                    successElement.style.display = 'none';
+                }, 3000);
+            }
+            console.log(message);
+        }
+
+        // Export des données
+        async function exportData() {
+            if (!isAdminLoggedIn) return;
+            
+            const data = {
+                members: members,
+                news: news,
+                exportDate: new Date(),
+                totalAmount: members.reduce((sum, member) => sum + member.amount, 0),
+                firebase: isFirebaseInitialized
+            };
+            
+            const blob = new Blob([JSON.stringify(data, null, 2)], {type: 'application/json'});
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `cotisations_oam_${new Date().toISOString().split('T')[0]}.json`;
+            a.click();
+            URL.revokeObjectURL(url);
+            
+            showSuccess('Données exportées avec succès !');
+        }
+
+        // ==========================================
+        // INITIALISATION
+        // ==========================================
+        
+        // Initialisation de la page
+        function initializePage() {
+            document.getElementById('daily-quote').textContent = getDailyQuote();
+            
+            // Initialiser Firebase
+            initializeFirebase();
+            
+            // Ajouter une actualité de bienvenue si pas de Firebase
+            if (!isFirebaseInitialized && news.length === 0) {
+                news.push({
+                    content: "Bienvenue sur le site de gestion des cotisations du groupe OAM ! Objectif : 250,000 F CFA d'ici février 2025. Chaque membre doit contribuer 62,000 F CFA maximum.",
+                    date: new Date(),
+                    signature: "N'dia Grâce - Trésorière"
+                });
+                updateDisplay();
+            }
+        }
+
+        // Gestion des événements
+        document.addEventListener('DOMContentLoaded', function() {
+            // Connexion site avec Entrée
+            document.getElementById('site-password').addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    loginToSite();
+                }
+            });
+
+            // Connexion admin avec Entrée
+            document.getElementById('admin-password').addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    loginAdmin();
+                }
+            });
+
+            // Fermer modal avec Escape
+            document.addEventListener('keydown', function(e) {
+                if (e.key === 'Escape') {
+                    closeEditModal();
+                }
+            });
+
+            // Fermer modal en cliquant à l'extérieur
+            window.addEventListener('click', function(e) {
+                const modal = document.getElementById('edit-modal');
+                if (e.target === modal) {
+                    closeEditModal();
+                }
+            });
+
+            // Ajouter la citation du jour
+            document.getElementById('daily-quote').textContent = getDailyQuote();
+        });
+
+        // Surveillance de la connexion réseau
+        window.addEventListener('online', () => {
+            console.log('Connexion réseau rétablie');
+            if (!isFirebaseInitialized) {
+                initializeFirebase();
+            }
+        });
+
+        window.addEventListener('offline', () => {
+            console.log('Connexion réseau perdue');
+            updateConnectionStatus(false);
+        });
+    </script>
+</body>
+</html>
