@@ -96,6 +96,108 @@
             margin-bottom: 10px;
         }
 
+        /* Table des matières */
+        .table-of-contents {
+            background: white;
+            padding: 20px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            margin-bottom: 30px;
+        }
+
+        .toc-toggle {
+            background: #667eea;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            width: 100%;
+            font-size: 16px;
+            margin-bottom: 15px;
+            transition: background 0.3s;
+        }
+
+        .toc-toggle:hover {
+            background: #5a6fd8;
+        }
+
+        .toc-content {
+            display: none;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 15px;
+        }
+
+        .toc-content.active {
+            display: grid;
+        }
+
+        .toc-item {
+            background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+            padding: 15px;
+            border-radius: 10px;
+            border-left: 4px solid #667eea;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .toc-item:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+        .toc-item h4 {
+            color: #667eea;
+            margin-bottom: 5px;
+            font-size: 1.1rem;
+        }
+
+        .toc-item p {
+            color: #666;
+            font-size: 0.9rem;
+            margin: 0;
+        }
+
+        /* Messages de succès améliorés */
+        .success-notification {
+            position: fixed;
+            top: 50px;
+            right: 20px;
+            background: linear-gradient(135deg, #28a745, #20c997);
+            color: white;
+            padding: 15px 20px;
+            border-radius: 10px;
+            box-shadow: 0 10px 30px rgba(40, 167, 69, 0.3);
+            z-index: 1001;
+            transform: translateX(400px);
+            transition: transform 0.3s ease;
+            max-width: 350px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .success-notification.show {
+            transform: translateX(0);
+        }
+
+        .success-notification .icon {
+            font-size: 1.5rem;
+        }
+
+        .success-notification .message {
+            flex: 1;
+        }
+
+        .success-notification .close-btn {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 1.2rem;
+            cursor: pointer;
+            padding: 0;
+        }
+
         .real-time-indicator {
             position: absolute;
             top: 20px;
@@ -547,9 +649,42 @@
             <button class="admin-toggle" onclick="toggleAdminPanel()">👤 Espace Admin</button>
         </div>
 
+        <!-- Table des matières -->
+        <div class="table-of-contents">
+            <button class="toc-toggle" onclick="toggleTableOfContents()">
+                📋 Table des Matières - Accès Rapide
+            </button>
+            <div id="toc-content" class="toc-content">
+                <div class="toc-item" onclick="scrollToSection('progress-section')">
+                    <h4>📊 Progression</h4>
+                    <p>Voir l'avancement du projet et les statistiques</p>
+                </div>
+                <div class="toc-item" onclick="scrollToSection('members-list')">
+                    <h4>👥 Contributions</h4>
+                    <p>Liste des membres et leurs paiements</p>
+                </div>
+                <div class="toc-item" onclick="scrollToSection('news-section')">
+                    <h4>📰 Actualités</h4>
+                    <p>Dernières nouvelles du groupe</p>
+                </div>
+                <div class="toc-item" onclick="scrollToSection('quote-section')">
+                    <h4>💫 Citation du Jour</h4>
+                    <p>Motivation et inspiration quotidienne</p>
+                </div>
+                <div class="toc-item" onclick="toggleAdminPanel()">
+                    <h4>⚙️ Administration</h4>
+                    <p>Gestion des membres et actualités (Admin)</p>
+                </div>
+                <div class="toc-item" onclick="exportData()">
+                    <h4>📥 Export</h4>
+                    <p>Télécharger les données (Admin)</p>
+                </div>
+            </div>
+        </div>
+
         <!-- Panel Admin -->
         <div id="admin-panel" class="admin-panel">
-            <h2>⚙️ Administration Firebase</h2>
+            <h2>⚙️ Administration</h2>
             
             <!-- Connexion Admin -->
             <div id="admin-login" class="admin-login">
@@ -575,6 +710,30 @@
                 
                 <hr style="margin: 20px 0;">
                 
+                <h3>👤 Enregistrement de Nouveaux Administrateurs</h3>
+                <div class="form-group">
+                    <label>Nouveau nom d'utilisateur:</label>
+                    <input type="text" id="new-admin-username" placeholder="Nom d'utilisateur" />
+                </div>
+                
+                <div class="form-group">
+                    <label>Nouveau mot de passe admin:</label>
+                    <input type="password" id="new-admin-user-password" placeholder="Mot de passe" />
+                </div>
+                
+                <div class="form-group">
+                    <label>Rôle:</label>
+                    <select id="admin-role" style="width: 100%; padding: 10px; border: 2px solid #e1e8ed; border-radius: 5px;">
+                        <option value="admin">Administrateur</option>
+                        <option value="moderator">Modérateur</option>
+                        <option value="treasurer">Trésorier</option>
+                    </select>
+                </div>
+                
+                <button class="btn" onclick="registerNewAdmin()">👤 Enregistrer Administrateur</button>
+                
+                <hr style="margin: 30px 0;">
+                
                 <h3>💰 Gestion des Membres</h3>
                 <div class="form-group">
                     <label>Nom du membre:</label>
@@ -583,7 +742,7 @@
                 
                 <div class="form-group">
                     <label>Montant (F CFA):</label>
-                    <input type="number" id="member-amount" placeholder="Montant" min="0" max="62000" />
+                    <input type="number" id="member-amount" placeholder="Montant" min="0" />
                 </div>
                 
                 <button class="btn" onclick="addPayment()">💰 Ajouter Paiement</button>
@@ -608,7 +767,7 @@
                 </div>
                 
                 <div class="form-group">
-                    <label>Nouveau mot de passe admin:</label>
+                    <label>Changer mot de passe admin actuel:</label>
                     <input type="password" id="new-admin-password" placeholder="Nouveau mot de passe admin" />
                 </div>
                 
@@ -617,22 +776,23 @@
                 
                 <hr style="margin: 30px 0;">
                 
-                <h3>🔄 Synchronisation</h3>
+                <h3>🔄 Outils d'Administration</h3>
                 <button class="btn" onclick="exportData()">📥 Exporter Données</button>
-                <button class="btn" onclick="checkConnectionStatus()">🔍 Vérifier Connexion</button>
+                <button class="btn" onclick="checkConnectionStatus()">🔍 Vérifier Statut</button>
+                <button class="btn" onclick="clearAllData()">🗑️ Vider Toutes les Données</button>
                 
                 <div id="admin-success" class="success-message"></div>
             </div>
         </div>
 
         <!-- Citation du jour -->
-        <div class="quote-section">
+        <div id="quote-section" class="quote-section">
             <h3>💫 Citation du jour</h3>
             <p id="daily-quote"></p>
         </div>
 
         <!-- Section progression -->
-        <div class="progress-section">
+        <div id="progress-section" class="progress-section">
             <h2>📊 Progression du Projet</h2>
             <div class="progress-bar">
                 <div class="progress-fill" id="progress-fill"></div>
@@ -659,7 +819,7 @@
 
         <div class="content-section">
             <!-- Liste des membres -->
-            <div class="members-list">
+            <div id="members-list" class="members-list">
                 <h2>👥 Liste des Contributions</h2>
                 <div id="members-container" class="loading">
                     Chargement des données...
@@ -668,12 +828,19 @@
         </div>
 
         <!-- Section actualités -->
-        <div class="news-section">
+        <div id="news-section" class="news-section">
             <h2>📰 Actualités du Groupe</h2>
             <div id="news-container" class="loading">
                 Chargement des actualités...
             </div>
         </div>
+    </div>
+
+    <!-- Notifications de succès -->
+    <div id="success-notification" class="success-notification">
+        <div class="icon">✅</div>
+        <div class="message" id="success-message"></div>
+        <button class="close-btn" onclick="hideSuccessNotification()">×</button>
     </div>
 
     <!-- Indicateur de connexion -->
@@ -692,7 +859,7 @@
             </div>
             <div class="form-group">
                 <label>Montant:</label>
-                <input type="number" id="edit-amount" min="0" max="62000" />
+                <input type="number" id="edit-amount" min="0" />
             </div>
             <button class="btn" onclick="saveEdit()">💾 Sauvegarder</button>
             <button class="btn btn-secondary" onclick="closeEditModal()">Annuler</button>
@@ -705,18 +872,18 @@
 
     <script>
         // ==========================================
-        // CONFIGURATION FIREBASE
+        // 🔥 CONFIGURATION DE LA BASE DE DONNÉES - NOUVEAU PROJET
         // ==========================================
         
-        // Configuration Firebase - REAL CONFIG
+        // ⚠️ REMPLACEZ CES VALEURS PAR VOTRE CONFIGURATION
         const firebaseConfig = {
-            apiKey: "AIzaSyAVxBD99mo1IIp9-vp-6RIf2jycCwAy5hg",
-            authDomain: "cotisations-oam-groupe.firebaseapp.com",
-            projectId: "cotisations-oam-groupe",
-            storageBucket: "cotisations-oam-groupe.firebasestorage.app",
-            messagingSenderId: "735863860544",
-            appId: "1:735863860544:web:fe90f89bdb0db4eed09ea5",
-            measurementId: "G-45BB9V2D1W"
+            apiKey: "VOTRE_NOUVELLE_API_KEY",
+            authDomain: "votre-nouveau-projet.firebaseapp.com",
+            projectId: "votre-nouveau-projet-id",
+            storageBucket: "votre-nouveau-projet.firebasestorage.app",
+            messagingSenderId: "123456789012",
+            appId: "1:123456789012:web:abcdef123456789",
+            measurementId: "G-XXXXXXXXXX"
         };
 
         // Variables Firebase
@@ -732,13 +899,13 @@
                 db = firebase.firestore();
                 isFirebaseInitialized = true;
                 updateConnectionStatus(true);
-                console.log("Firebase initialisé avec succès");
+                console.log("✅ Base de données initialisée avec succès");
                 
                 // Commencer l'écoute temps réel
                 startRealtimeListeners();
                 
             } catch (error) {
-                console.error("Erreur d'initialisation Firebase:", error);
+                console.error("❌ Erreur d'initialisation de la base de données:", error);
                 isFirebaseInitialized = false;
                 updateConnectionStatus(false);
                 
@@ -750,10 +917,9 @@
         // Mode de secours sans Firebase
         function initializeFallbackMode() {
             console.log("Mode hors ligne activé");
-            // Utilise les données locales comme avant
             members = [];
             news = [{
-                content: "Site en mode hors ligne. Les modifications ne seront pas synchronisées.",
+                content: "⚠️ Site en mode hors ligne. Les données sont stockées localement.",
                 date: new Date(),
                 signature: "Système"
             }];
@@ -782,7 +948,7 @@
                 updateDisplay();
                 highlightUpdatedMembers();
             }, (error) => {
-                console.error("Erreur d'écoute members:", error);
+                console.error("❌ Erreur de synchronisation members:", error);
                 updateConnectionStatus(false);
             });
             
@@ -801,14 +967,33 @@
                 updateNewsDisplay();
                 highlightNewNews();
             }, (error) => {
-                console.error("Erreur d'écoute news:", error);
+                console.error("❌ Erreur de synchronisation news:", error);
                 updateConnectionStatus(false);
             });
         }
 
         // Ajouter un membre à Firebase
         async function addMemberToFirebase(memberData) {
-            if (!isFirebaseInitialized) return;
+            if (!isFirebaseInitialized) {
+                // Mode hors ligne - ajouter localement
+                const existingMember = members.find(m => m.name.toLowerCase() === memberData.name.toLowerCase());
+                
+                if (existingMember) {
+                    existingMember.amount += memberData.amount;
+                    existingMember.lastPayment = new Date();
+                } else {
+                    members.push({
+                        id: 'local_' + Date.now(),
+                        name: memberData.name,
+                        amount: memberData.amount,
+                        lastPayment: new Date()
+                    });
+                }
+                
+                updateDisplay();
+                showMemberAddedSuccess(memberData.name, memberData.amount);
+                return;
+            }
             
             try {
                 // Vérifier si le membre existe déjà
@@ -833,17 +1018,28 @@
                     });
                 }
                 
-                showSuccess('Paiement synchronisé avec succès !');
+                showMemberAddedSuccess(memberData.name, memberData.amount);
                 
             } catch (error) {
-                console.error("Erreur d'ajout à Firebase:", error);
-                showError('Erreur de synchronisation');
+                console.error("❌ Erreur d'ajout en base de données:", error);
+                showSuccessNotification('❌ Erreur de synchronisation des données', '⚠️');
             }
         }
 
         // Ajouter une actualité à Firebase
         async function addNewsToFirebase(newsData) {
-            if (!isFirebaseInitialized) return;
+            if (!isFirebaseInitialized) {
+                // Mode hors ligne
+                news.unshift({
+                    id: 'local_' + Date.now(),
+                    content: newsData.content,
+                    date: new Date(),
+                    signature: newsData.signature
+                });
+                updateNewsDisplay();
+                showNewsAddedSuccess();
+                return;
+            }
             
             try {
                 await db.collection('news').add({
@@ -852,17 +1048,28 @@
                     signature: newsData.signature
                 });
                 
-                showSuccess('Actualité publiée et synchronisée !');
+                showNewsAddedSuccess();
                 
             } catch (error) {
-                console.error("Erreur d'ajout actualité:", error);
-                showError('Erreur de synchronisation');
+                console.error("❌ Erreur d'ajout actualité:", error);
+                showSuccessNotification('❌ Erreur de synchronisation actualité', '⚠️');
             }
         }
 
         // Modifier un membre dans Firebase
         async function updateMemberInFirebase(memberId, memberData) {
-            if (!isFirebaseInitialized) return;
+            if (!isFirebaseInitialized) {
+                // Mode hors ligne
+                const memberIndex = members.findIndex(m => m.id === memberId);
+                if (memberIndex !== -1) {
+                    members[memberIndex].name = memberData.name;
+                    members[memberIndex].amount = memberData.amount;
+                    members[memberIndex].lastPayment = new Date();
+                    updateDisplay();
+                    showMemberEditedSuccess(memberData.name);
+                }
+                return;
+            }
             
             try {
                 await db.collection('members').doc(memberId).update({
@@ -871,39 +1078,60 @@
                     lastPayment: firebase.firestore.Timestamp.now()
                 });
                 
-                showSuccess('Membre modifié et synchronisé !');
+                showMemberEditedSuccess(memberData.name);
                 
             } catch (error) {
-                console.error("Erreur de modification:", error);
-                showError('Erreur de synchronisation');
+                console.error("❌ Erreur de modification:", error);
+                showSuccessNotification('❌ Erreur de modification', '⚠️');
             }
         }
 
         // Supprimer un membre de Firebase
         async function deleteMemberFromFirebase(memberId) {
-            if (!isFirebaseInitialized) return;
+            const memberToDelete = members.find(m => m.id === memberId);
+            const memberName = memberToDelete ? memberToDelete.name : 'Membre';
+            
+            if (!isFirebaseInitialized) {
+                // Mode hors ligne
+                const memberIndex = members.findIndex(m => m.id === memberId);
+                if (memberIndex !== -1) {
+                    members.splice(memberIndex, 1);
+                    updateDisplay();
+                    showMemberDeletedSuccess(memberName);
+                }
+                return;
+            }
             
             try {
                 await db.collection('members').doc(memberId).delete();
-                showSuccess('Membre supprimé et synchronisé !');
+                showMemberDeletedSuccess(memberName);
                 
             } catch (error) {
-                console.error("Erreur de suppression:", error);
-                showError('Erreur de synchronisation');
+                console.error("❌ Erreur de suppression:", error);
+                showSuccessNotification('❌ Erreur de suppression', '⚠️');
             }
         }
 
         // Supprimer une actualité de Firebase
         async function deleteNewsFromFirebase(newsId) {
-            if (!isFirebaseInitialized) return;
+            if (!isFirebaseInitialized) {
+                // Mode hors ligne
+                const newsIndex = news.findIndex(n => n.id === newsId);
+                if (newsIndex !== -1) {
+                    news.splice(newsIndex, 1);
+                    updateNewsDisplay();
+                    showSuccessNotification('🗑️ Actualité supprimée !', '✅');
+                }
+                return;
+            }
             
             try {
                 await db.collection('news').doc(newsId).delete();
-                showSuccess('Actualité supprimée et synchronisée !');
+                showSuccessNotification('🗑️ Actualité supprimée et synchronisée !', '✅');
                 
             } catch (error) {
-                console.error("Erreur de suppression:", error);
-                showError('Erreur de synchronisation');
+                console.error("❌ Erreur de suppression:", error);
+                showSuccessNotification('❌ Erreur de suppression actualité', '⚠️');
             }
         }
 
@@ -919,6 +1147,17 @@
             targetAmount: 250000,
             individualTarget: 62000
         };
+        
+        // Base de données des administrateurs (en mémoire)
+        let adminDatabase = [
+            {
+                username: 'ouraga',
+                password: 'RkJJMTk=', // FBI19 encodé
+                role: 'admin',
+                registeredBy: 'system',
+                registeredAt: new Date()
+            }
+        ];
         
         // Variables globales
         let isAdminLoggedIn = false;
@@ -955,6 +1194,96 @@
             const today = new Date();
             const dayOfYear = Math.floor((today - new Date(today.getFullYear(), 0, 0)) / 1000 / 60 / 60 / 24);
             return quotes[dayOfYear % quotes.length];
+        }
+
+        // ==========================================
+        // TABLE DES MATIÈRES ET NAVIGATION
+        // ==========================================
+        
+        // Toggle table des matières
+        function toggleTableOfContents() {
+            const tocContent = document.getElementById('toc-content');
+            tocContent.classList.toggle('active');
+        }
+
+        // Navigation fluide vers les sections
+        function scrollToSection(sectionId) {
+            const section = document.getElementById(sectionId);
+            if (section) {
+                section.scrollIntoView({
+                    behavior: 'smooth',
+                    block: 'start'
+                });
+                
+                // Fermer la table des matières après navigation
+                document.getElementById('toc-content').classList.remove('active');
+                
+                // Ajouter un effet visuel temporaire
+                section.style.transform = 'scale(1.02)';
+                section.style.transition = 'transform 0.3s ease';
+                setTimeout(() => {
+                    section.style.transform = 'scale(1)';
+                    setTimeout(() => {
+                        section.style.transition = '';
+                    }, 300);
+                }, 200);
+            }
+        }
+
+        // ==========================================
+        // NOTIFICATIONS DE SUCCÈS AMÉLIORÉES
+        // ==========================================
+        
+        // Afficher notification de succès
+        function showSuccessNotification(message, icon = '✅') {
+            const notification = document.getElementById('success-notification');
+            const messageElement = document.getElementById('success-message');
+            const iconElement = notification.querySelector('.icon');
+            
+            iconElement.textContent = icon;
+            messageElement.textContent = message;
+            
+            notification.classList.add('show');
+            
+            // Auto-hide après 4 secondes
+            setTimeout(() => {
+                hideSuccessNotification();
+            }, 4000);
+        }
+
+        // Cacher notification de succès
+        function hideSuccessNotification() {
+            const notification = document.getElementById('success-notification');
+            notification.classList.remove('show');
+        }
+
+        // Messages de succès spécialisés
+        function showMemberAddedSuccess(memberName, amount) {
+            showSuccessNotification(
+                `💰 ${memberName} ajouté avec succès ! Montant: ${amount.toLocaleString()} F CFA`,
+                '🎉'
+            );
+        }
+
+        function showNewsAddedSuccess() {
+            showSuccessNotification(
+                '📢 Actualité publiée avec succès et synchronisée !',
+                '📰'
+            );
+        }
+
+        function showMemberEditedSuccess(memberName) {
+            showSuccessNotification(
+                `✏️ ${memberName} modifié avec succès !`,
+                '💾'
+            );
+        }
+
+        function showMemberDeletedSuccess(memberName) {
+            showSuccessNotification(
+                `🗑️ ${memberName} supprimé avec succès !`,
+                '✅'
+            );
         }
 
         // ==========================================
@@ -1002,14 +1331,77 @@
             const username = document.getElementById('admin-username').value;
             const password = document.getElementById('admin-password').value;
             
-            if (btoa(username) === config.adminUser && btoa(password) === config.adminPass) {
+            // Vérifier dans la base de données des administrateurs
+            const admin = adminDatabase.find(admin => 
+                admin.username === username && admin.password === btoa(password)
+            );
+            
+            if (admin) {
                 isAdminLoggedIn = true;
                 document.getElementById('admin-login').style.display = 'none';
                 document.getElementById('admin-content').classList.add('active');
-                document.getElementById('admin-name').textContent = username;
+                document.getElementById('admin-name').textContent = username + ' (' + admin.role + ')';
                 updateDisplay();
+                showSuccessNotification('🎉 Connexion administrateur réussie !', '👤');
             } else {
                 showErrorElement('admin-error');
+            }
+        }
+
+        // Enregistrer un nouvel administrateur
+        function registerNewAdmin() {
+            if (!isAdminLoggedIn) return;
+            
+            const username = document.getElementById('new-admin-username').value.trim();
+            const password = document.getElementById('new-admin-user-password').value.trim();
+            const role = document.getElementById('admin-role').value;
+            
+            if (!username || !password) {
+                alert('Veuillez remplir tous les champs.');
+                return;
+            }
+            
+            if (password.length < 4) {
+                alert('Le mot de passe doit contenir au moins 4 caractères.');
+                return;
+            }
+            
+            // Vérifier si l'utilisateur existe déjà
+            const existingAdmin = adminDatabase.find(admin => admin.username === username);
+            if (existingAdmin) {
+                alert('Ce nom d\'utilisateur existe déjà.');
+                return;
+            }
+            
+            // Ajouter le nouvel administrateur
+            adminDatabase.push({
+                username: username,
+                password: btoa(password),
+                role: role,
+                registeredBy: document.getElementById('admin-name').textContent.split(' ')[0],
+                registeredAt: new Date()
+            });
+            
+            // Effacer les champs
+            document.getElementById('new-admin-username').value = '';
+            document.getElementById('new-admin-user-password').value = '';
+            document.getElementById('admin-role').value = 'admin';
+            
+            showSuccessNotification(`👤 Administrateur ${username} enregistré avec succès !`, '✅');
+        }
+
+        // Vider toutes les données
+        function clearAllData() {
+            if (!isAdminLoggedIn) return;
+            
+            if (confirm('⚠️ ATTENTION: Cette action supprimera TOUTES les données (membres et actualités). Êtes-vous sûr ?')) {
+                if (confirm('🚨 DERNIÈRE CONFIRMATION: Toutes les données seront perdues définitivement. Continuer ?')) {
+                    members = [];
+                    news = [];
+                    updateDisplay();
+                    updateNewsDisplay();
+                    showSuccessNotification('🗑️ Toutes les données ont été supprimées !', '✅');
+                }
             }
         }
 
@@ -1171,7 +1563,7 @@
 
             config.sitePass = btoa(newPassword);
             document.getElementById('new-site-password').value = '';
-            showSuccess('Mot de passe du site changé avec succès !');
+            showSuccessNotification('🔑 Mot de passe du site changé !', '✅');
         }
 
         // Changer le mot de passe admin
@@ -1187,7 +1579,7 @@
 
             config.adminPass = btoa(newPassword);
             document.getElementById('new-admin-password').value = '';
-            showSuccess('Mot de passe admin changé avec succès !');
+            showSuccessNotification('🔑 Mot de passe admin changé !', '✅');
         }
 
         // ==========================================
@@ -1327,9 +1719,9 @@
 
         function checkConnectionStatus() {
             if (isFirebaseInitialized) {
-                showSuccess('Connexion Firebase active !');
+                showSuccessNotification('🟢 Base de données connectée !', '🔗');
             } else {
-                showSuccess('Mode hors ligne - Les données ne sont pas synchronisées');
+                showSuccessNotification('🔴 Mode hors ligne - Données stockées localement', '⚠️');
             }
         }
 
@@ -1347,24 +1739,20 @@
 
         function showError(message) {
             console.error(message);
-            // Peut être étendu pour afficher des erreurs à l'utilisateur
+            showErrorElement('site-error');
         }
 
         function showSuccess(message) {
-            const successElement = document.getElementById('admin-success');
-            if (successElement) {
-                successElement.textContent = message;
-                successElement.style.display = 'block';
-                setTimeout(() => {
-                    successElement.style.display = 'none';
-                }, 3000);
-            }
+            showSuccessNotification(message, '✅');
             console.log(message);
         }
 
         // Export des données
         async function exportData() {
-            if (!isAdminLoggedIn) return;
+            if (!isAdminLoggedIn) {
+                showSuccessNotification('❌ Connexion admin requise', '🔐');
+                return;
+            }
             
             const data = {
                 members: members,
@@ -1382,7 +1770,7 @@
             a.click();
             URL.revokeObjectURL(url);
             
-            showSuccess('Données exportées avec succès !');
+            showSuccessNotification('📥 Données exportées avec succès !', '💾');
         }
 
         // ==========================================
@@ -1399,7 +1787,7 @@
             // Ajouter une actualité de bienvenue si pas de Firebase
             if (!isFirebaseInitialized && news.length === 0) {
                 news.push({
-                    content: "Bienvenue sur le site de gestion des cotisations du groupe OAM ! Objectif : 250,000 F CFA d'ici février 2025. Chaque membre doit contribuer 62,000 F CFA maximum.",
+                    content: "🎉 Bienvenue sur le site de gestion des cotisations du groupe OAM ! Objectif : 250,000 F CFA d'ici février 2025. Chaque membre doit contribuer 62,000 F CFA maximum.",
                     date: new Date(),
                     signature: "N'dia Grâce - Trésorière"
                 });
@@ -1427,6 +1815,8 @@
             document.addEventListener('keydown', function(e) {
                 if (e.key === 'Escape') {
                     closeEditModal();
+                    hideSuccessNotification();
+                    document.getElementById('toc-content').classList.remove('active');
                 }
             });
 
@@ -1436,22 +1826,38 @@
                 if (e.target === modal) {
                     closeEditModal();
                 }
+                
+                // Fermer table des matières en cliquant à l'extérieur
+                const tocToggle = document.querySelector('.toc-toggle');
+                const tocContent = document.getElementById('toc-content');
+                if (!tocToggle.contains(e.target) && !tocContent.contains(e.target)) {
+                    tocContent.classList.remove('active');
+                }
             });
 
             // Ajouter la citation du jour
             document.getElementById('daily-quote').textContent = getDailyQuote();
+            
+            // Message de bienvenue
+            setTimeout(() => {
+                if (isFirebaseInitialized) {
+                    showSuccessNotification('🎉 Bienvenue ! Système connecté', '✅');
+                } else {
+                    showSuccessNotification('🎉 Bienvenue sur le site OAM !', '👋');
+                }
+            }, 1000);
         });
 
         // Surveillance de la connexion réseau
         window.addEventListener('online', () => {
-            console.log('Connexion réseau rétablie');
+            console.log('🟢 Connexion réseau rétablie');
             if (!isFirebaseInitialized) {
                 initializeFirebase();
             }
         });
 
         window.addEventListener('offline', () => {
-            console.log('Connexion réseau perdue');
+            console.log('🔴 Connexion réseau perdue');
             updateConnectionStatus(false);
         });
     </script>
