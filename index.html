@@ -699,101 +699,43 @@
         </div>
     </div>
 
-    <!-- Firebase SDK avec Authentication -->
+    <!-- Firebase SDK -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/firebase/9.23.0/firebase-app-compat.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/firebase/9.23.0/firebase-firestore-compat.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/firebase/9.23.0/firebase-auth-compat.min.js"></script>
 
     <script>
         // ==========================================
-        // CONFIGURATION FIREBASE SÉCURISÉE
+        // CONFIGURATION FIREBASE
         // ==========================================
         
-        // Pour la production, utilisez des variables d'environnement
-        // Configuration Firebase - PRODUCTION READY
+        // Configuration Firebase - REAL CONFIG
         const firebaseConfig = {
-            apiKey: getEnvVar('FIREBASE_API_KEY', 'AIzaSyAVxBD99mo1IIp9-vp-6RIf2jycCwAy5hg'),
-            authDomain: getEnvVar('FIREBASE_AUTH_DOMAIN', 'cotisations-oam-groupe.firebaseapp.com'),
-            projectId: getEnvVar('FIREBASE_PROJECT_ID', 'cotisations-oam-groupe'),
-            storageBucket: getEnvVar('FIREBASE_STORAGE_BUCKET', 'cotisations-oam-groupe.firebasestorage.app'),
-            messagingSenderId: getEnvVar('FIREBASE_MESSAGING_SENDER_ID', '735863860544'),
-            appId: getEnvVar('FIREBASE_APP_ID', '1:735863860544:web:fe90f89bdb0db4eed09ea5'),
-            measurementId: getEnvVar('FIREBASE_MEASUREMENT_ID', 'G-45BB9V2D1W')
+            apiKey: "AIzaSyAVxBD99mo1IIp9-vp-6RIf2jycCwAy5hg",
+            authDomain: "cotisations-oam-groupe.firebaseapp.com",
+            projectId: "cotisations-oam-groupe",
+            storageBucket: "cotisations-oam-groupe.firebasestorage.app",
+            messagingSenderId: "735863860544",
+            appId: "1:735863860544:web:fe90f89bdb0db4eed09ea5",
+            measurementId: "G-45BB9V2D1W"
         };
-
-        // Fonction pour récupérer les variables d'environnement
-        function getEnvVar(name, defaultValue) {
-            // En production, utilisez process.env ou window.env
-            // Pour le développement, utilisez les valeurs par défaut
-            if (typeof process !== 'undefined' && process.env && process.env[name]) {
-                return process.env[name];
-            }
-            if (typeof window !== 'undefined' && window.env && window.env[name]) {
-                return window.env[name];
-            }
-            return defaultValue;
-        }
-
-        // Validation des domaines autorisés (sécurité supplémentaire)
-        function validateDomain() {
-            const allowedDomains = [
-                'localhost',
-                '127.0.0.1',
-                'cotisations-oam-groupe.firebaseapp.com',
-                'cotisations-oam.netlify.app',
-                'votre-domaine-personnalise.com'
-            ];
-            
-            const currentDomain = window.location.hostname;
-            const isAllowed = allowedDomains.some(domain => 
-                currentDomain === domain || currentDomain.endsWith('.' + domain)
-            );
-            
-            if (!isAllowed && window.location.protocol === 'https:') {
-                console.warn('Domaine non autorisé:', currentDomain);
-                // En production, vous pourriez bloquer l'accès ici
-            }
-            
-            return isAllowed;
-        }
 
         // Variables Firebase
         let db;
-        let auth;
         let isFirebaseInitialized = false;
-        let currentUser = null;
         
         // Initialisation Firebase avec gestion d'erreur
         function initializeFirebase() {
             try {
-                // Validation du domaine pour la sécurité
-                if (!validateDomain()) {
-                    console.warn('Domaine non vérifié - certaines fonctionnalités peuvent être limitées');
-                }
-                
                 if (!firebase.apps.length) {
                     firebase.initializeApp(firebaseConfig);
                 }
                 db = firebase.firestore();
-                auth = firebase.auth();
-                
-                // Configuration de sécurité supplémentaire
-                configureSecurity();
-                
                 isFirebaseInitialized = true;
                 updateConnectionStatus(true);
                 console.log("Firebase initialisé avec succès");
                 
-                // Écouter les changements d'authentification
-                auth.onAuthStateChanged((user) => {
-                    currentUser = user;
-                    if (user) {
-                        console.log("Utilisateur connecté:", user.email);
-                        startRealtimeListeners();
-                    } else {
-                        console.log("Utilisateur déconnecté");
-                    }
-                });
+                // Commencer l'écoute temps réel
+                startRealtimeListeners();
                 
             } catch (error) {
                 console.error("Erreur d'initialisation Firebase:", error);
@@ -802,32 +744,6 @@
                 
                 // Mode fallback sans Firebase
                 initializeFallbackMode();
-            }
-        }
-
-        // Configuration de sécurité Firebase
-        function configureSecurity() {
-            // Activer la persistance hors ligne (optionnel)
-            if (db) {
-                db.enablePersistence().catch((err) => {
-                    if (err.code == 'failed-precondition') {
-                        console.warn('Persistance échouée: plusieurs onglets ouverts');
-                    } else if (err.code == 'unimplemented') {
-                        console.warn('Persistance non supportée par ce navigateur');
-                    }
-                });
-            }
-            
-            // Configuration des timeouts
-            if (auth) {
-                // Timeout de session (optionnel)
-                const timeout = 30 * 60 * 1000; // 30 minutes
-                setTimeout(() => {
-                    if (currentUser) {
-                        console.log('Session expirée - déconnexion automatique');
-                        logoutAdminSecure();
-                    }
-                }, timeout);
             }
         }
 
@@ -992,14 +908,14 @@
         }
 
         // ==========================================
-        // AUTHENTIFICATION SÉCURISÉE
+        // AUTHENTIFICATION ET SÉCURITÉ
         // ==========================================
         
-        // Configuration sécurisée - Variables d'environnement
+        // Configuration sécurisée (encodage des mots de passe)
         const config = {
-            // Ces mots de passe sont pour l'interface locale uniquement
-            // L'authentification réelle se fait via Firebase Auth
-            sitePass: 'T0FNMTk=', // OAM19 encodé (temporaire)
+            sitePass: 'T0FNMTk=', // OAM19 encodé
+            adminUser: 'b3VyYWdh', // ouraga encodé
+            adminPass: 'RkJJMTk=', // FBI19 encodé
             targetAmount: 250000,
             individualTarget: 62000
         };
@@ -1009,68 +925,6 @@
         let currentEditIndex = -1;
         let members = [];
         let news = [];
-
-        // Connexion sécurisée admin via Firebase Auth
-        async function loginAdminSecure() {
-            const username = document.getElementById('admin-username').value;
-            const password = document.getElementById('admin-password').value;
-            
-            try {
-                // Authentification via Firebase Auth
-                const userCredential = await auth.signInWithEmailAndPassword(
-                    username + '@cotisations-oam.local', // Email fictif pour l'admin
-                    password
-                );
-                
-                // Vérifier si l'utilisateur a les droits admin
-                const idToken = await userCredential.user.getIdToken();
-                const decodedToken = await userCredential.user.getIdTokenResult();
-                
-                if (decodedToken.claims.admin) {
-                    isAdminLoggedIn = true;
-                    document.getElementById('admin-login').style.display = 'none';
-                    document.getElementById('admin-content').classList.add('active');
-                    document.getElementById('admin-name').textContent = username;
-                    updateDisplay();
-                    showSuccess('Connexion admin sécurisée réussie !');
-                } else {
-                    throw new Error('Droits administrateur requis');
-                }
-                
-            } catch (error) {
-                console.error('Erreur de connexion admin:', error);
-                
-                // Fallback vers l'ancien système pour la transition
-                if (btoa(username) === 'b3VyYWdh' && btoa(password) === 'RkJJMTk=') {
-                    isAdminLoggedIn = true;
-                    document.getElementById('admin-login').style.display = 'none';
-                    document.getElementById('admin-content').classList.add('active');
-                    document.getElementById('admin-name').textContent = username;
-                    updateDisplay();
-                    showSuccess('Connexion admin (mode compatibilité) !');
-                } else {
-                    showErrorElement('admin-error');
-                }
-            }
-        }
-
-        // Déconnexion admin sécurisée
-        async function logoutAdminSecure() {
-            try {
-                if (currentUser) {
-                    await auth.signOut();
-                }
-            } catch (error) {
-                console.error('Erreur de déconnexion:', error);
-            }
-            
-            isAdminLoggedIn = false;
-            document.getElementById('admin-login').style.display = 'block';
-            document.getElementById('admin-content').classList.remove('active');
-            document.getElementById('admin-username').value = '';
-            document.getElementById('admin-password').value = '';
-            updateDisplay();
-        }
         
         // Citations et proverbes
         const quotes = [
@@ -1145,12 +999,28 @@
 
         // Connexion admin
         function loginAdmin() {
-            loginAdminSecure();
+            const username = document.getElementById('admin-username').value;
+            const password = document.getElementById('admin-password').value;
+            
+            if (btoa(username) === config.adminUser && btoa(password) === config.adminPass) {
+                isAdminLoggedIn = true;
+                document.getElementById('admin-login').style.display = 'none';
+                document.getElementById('admin-content').classList.add('active');
+                document.getElementById('admin-name').textContent = username;
+                updateDisplay();
+            } else {
+                showErrorElement('admin-error');
+            }
         }
 
         // Déconnexion admin
         function logoutAdmin() {
-            logoutAdminSecure();
+            isAdminLoggedIn = false;
+            document.getElementById('admin-login').style.display = 'block';
+            document.getElementById('admin-content').classList.remove('active');
+            document.getElementById('admin-username').value = '';
+            document.getElementById('admin-password').value = '';
+            updateDisplay();
         }
 
         // ==========================================
